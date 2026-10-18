@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Solo Leveling: AI Fitness System</title>
+  <style>
+    :root {
+      --bg: #070913;
+      --panel: #0d1222;
+      --card: #141c33;
+      --border: #1e2c52;
+      --cyan: #00f0ff;
+      --blue: #0066ff;
+      --purple: #9d00ff;
+      --gold: #ffb700;
+      --red: #ff3366;
+      --text: #e2e8f0;
+      --text-dim: #8a99ad;
+      --font-system: 'Segoe UI', Roboto, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-system); -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 40px; min-height: 100vh; }
+
+    /* System Glow Effects */
+    .glow-cyan { text-shadow: 0 0 10px rgba(0, 240, 255, 0.6); }
+    .glow-purple { text-shadow: 0 0 10px rgba(157, 0, 255, 0.6); }
+
+    /* Header Nav */
+    header {
+      background: rgba(13, 18, 34, 0.95);
+      border-bottom: 1px solid var(--cyan);
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand { font-size: 1.1rem; font-weight: 800; letter-spacing: 1.5px; color: var(--cyan); display: flex; align-items: center; gap: 8px; }
+    .system-badge { background: rgba(0,240,255,0.1); border: 1px solid var(--cyan); color: var(--cyan); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+
+    .header-actions { display: flex; gap: 8px; }
+    .btn-icon { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .btn-icon:active { background: var(--border); }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+    /* Cards & Panels */
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .panel-system { border-color: rgba(0, 240, 255, 0.3); box-shadow: 0 0 15px rgba(0, 240, 255, 0.05); }
+
+    .panel-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Forms */
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 4px; text-transform: uppercase; }
+    .form-control {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .form-control:focus { border-color: var(--cyan); }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      color: #000;
+      font-weight: 800;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+      transition: all 0.2s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-danger { background: linear-gradient(135deg, #a00, var(--red)); color: #fff; box-shadow: none; }
+    .btn-secondary { background: var(--card); border: 1px solid var(--border); color: var(--text); }
+
+    /* Hunter Profile HUD */
+    .hud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .hud-stat { background: var(--card); padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
+    .hud-stat-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
+    .hud-stat-val { font-size: 1.1rem; font-weight: 700; color: #fff; margin-top: 2px; }
+
+    /* XP Progress Bar */
+    .xp-bar-container { background: var(--card); border: 1px solid var(--border); height: 16px; border-radius: 8px; overflow: hidden; position: relative; margin-top: 8px; }
+    .xp-bar-fill { background: linear-gradient(90deg, var(--blue), var(--cyan)); height: 100%; width: 0%; transition: width 0.3s; }
+    .xp-text { position: absolute; width: 100%; text-align: center; top: 1px; font-size: 0.65rem; font-weight: 700; color: #fff; text-shadow: 0 0 4px #000; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; overflow-x: auto; }
+    .tab-btn { background: none; border: none; color: var(--text-dim); font-size: 0.8rem; font-weight: 700; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+    .tab-btn.active { background: rgba(0, 240, 255, 0.15); color: var(--cyan); border: 1px solid var(--cyan); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Log Items */
+    .log-item { background: var(--card); border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .log-title { font-weight: 700; font-size: 0.85rem; }
+    .log-sub { font-size: 0.7rem; color: var(--text-dim); }
+    .log-xp { color: var(--cyan); font-weight: 700; font-size: 0.85rem; }
+
+    /* Step Tracker Pedometer */
+    .step-circle { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--cyan); margin: 0 auto 12px auto; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
+    .step-count { font-size: 1.5rem; font-weight: 800; color: #fff; }
+    .step-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
+
+    /* Diet Plan Box */
+    .meal-box { background: var(--card); border-left: 3px solid var(--cyan); padding: 10px; margin-bottom: 8px; border-radius: 0 6px 6px 0; }
+    .meal-title { font-size: 0.8rem; font-weight: 700; color: var(--cyan); }
+    .meal-desc { font-size: 0.75rem; color: var(--text); margin-top: 2px; }
+
+    /* Storage Indicator Badge */
+    .storage-status { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; background: rgba(0, 255, 100, 0.1); border: 1px solid #00ff66; color: #00ff66; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 16px; }
+    .modal-card { background: var(--panel); border: 1px solid var(--cyan); border-radius: 12px; width: 100%; max-width: 450px; padding: 16px; box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>SYSTEM</span>
+      <span class="system-badge">SOLO FITNESS</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="btn-quick-code">🔑 Code</button>
+      <button class="btn-icon" id="btn-re-awaken">🔄 Reset</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- ONBOARDING PANEL (Shown if no persistent profile exists) -->
+    <div id="onboarding-view" class="panel panel-system">
+      <div class="panel-title">SYSTEM AWAKENING EVALUATION</div>
+      <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 16px;">
+        State your current physical metrics to initialize your Hunter Rank and set daily calorie deficit protocols.
+      </p>
+      
+      <form id="form-onboarding">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Current Weight (kg)</label>
+            <input type="number" id="init-weight" class="form-control" placeholder="70" required min="30" max="250">
+          </div>
+          <div class="form-group">
+            <label>Target Weight (kg)</label>
+            <input type="number" id="init-target-weight" class="form-control" placeholder="62" required min="30" max="250">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Height (cm)</label>
+            <input type="number" id="init-height" class="form-control" placeholder="175" required min="100" max="230">
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" id="init-age" class="form-control" placeholder="18" required min="10" max="90">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Dietary Requirement</label>
+          <select id="init-diet" class="form-control">
+            <option value="high-protein">High-Protein Non-Veg / Mixed</option>
+            <option value="indian-veg">Indian High-Protein Pure Veg</option>
+            <option value="quick-budget">Budget High-Protein Essentials</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Activity Multiplier</label>
+          <select id="init-activity" class="form-control">
+            <option value="1.2">Sedentary (Minimal Activity)</option>
+            <option value="1.375">Lightly Active (1-3 Gym Sessions/wk)</option>
+            <option value="1.55" selected>Moderately Active (3-5 Gym Sessions/wk)</option>
+            <option value="1.725">Very Active (6-7 Heavy Lifting/wk)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn" style="margin-top: 8px;">AWAKEN SYSTEM &amp; SAVE HUNTER</button>
+      </form>
+    </div>
+
+    <!-- MAIN DASHBOARD (Shown when profile is loaded) -->
+    <div id="dashboard-view" style="display: none;">
+
+      <!-- HUNTER STATUS CARD -->
+      <div class="panel panel-system">
+        <div class="panel-title">
+          <span>HUNTER STATUS PANEL</span>
+          <span class="storage-status" id="storage-status-tag">SECURE SYNC</span>
+        </div>
+
+        <div class="hud-grid">
+          <div class="hud-stat">
+            <div class="hud-stat-label">Hunter Rank</div>
+            <div class="hud-stat-val glow-cyan" id="hud-rank">E-RANK</div>
+          </div>
+          <div class="hud-stat">
+            <div class="hud-stat-label">System Level</div>
+            <div class="hud-stat-val glow-purple" id="hud-level">LVL 1</div>
+          </div>
+          <div class="hud-stat">
+            <div class="hud-stat-label">Current Weight</div>
+            <div class="hud-stat-val" id="hud-weight">-- kg</div>
+          </div>
+          <div class="hud-stat">
+            <div class="hud-stat-label">Target Goal</div>
+            <div class="hud-stat-val" id="hud-target">-- kg</div>
+          </div>
+        </div>
+
+        <div style="font-size: 0.7rem; color: var(--text-dim); display: flex; justify-content: space-between; margin-bottom: 2px;">
+          <span>HUNTER XP</span>
+          <span id="hud-xp-text">0 / 100 XP</span>
+        </div>
+        <div class="xp-bar-container">
+          <div class="xp-bar-fill" id="hud-xp-bar"></div>
+        </div>
+      </div>
+
+      <!-- TABS SECTION -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-workout')">💪 Gym Calculator</button>
+        <button class="tab-btn" onclick="switchTab('tab-steps')">👟 Step Tracker</button>
+        <button class="tab-btn" onclick="switchTab('tab-diet')">🥩 Deficit Diet</button>
+        <button class="tab-btn" onclick="switchTab('tab-history')">📜 History Logs</button>
+      </div>
+
+      <!-- TAB 1: GYM & EXERCISE CALORIE CALCULATOR -->
+      <div id="tab-workout" class="tab-content active">
+        <div class="panel">
+          <div class="panel-title">LOG GYM EXERCISE</div>
+
+          <div class="form-group">
+            <label>Select Exercise</label>
+            <select id="gym-exercise" class="form-control">
+              <option value="chest-press" data-met="5.0">Machine Chest Press (Chest)</option>
+              <option value="bench-press" data-met="6.0">Barbell Bench Press (Chest)</option>
+              <option value="incline-db" data-met="5.5">Incline Dumbbell Press (Upper Chest)</option>
+              <option value="lat-pulldown" data-met="5.0">Lat Pulldown (Back)</option>
+              <option value="seated-row" data-met="5.0">Seated Cable Row (Back)</option>
+              <option value="squats" data-met="6.5">Barbell Squats (Legs)</option>
+              <option value="deadlift" data-met="7.0">Deadlifts (Full Body)</option>
+              <option value="shoulder-press" data-met="5.0">Dumbbell Shoulder Press (Shoulders)</option>
+              <option value="bicep-curls" data-met="4.0">Bicep Curls (Arms)</option>
+              <option value="tricep-pushdown" data-met="4.0">Tricep Pushdowns (Arms)</option>
+              <option value="treadmill" data-met="8.0">Treadmill Running / Incline (Cardio)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Weight Used (kg)</label>
+              <input type="number" id="gym-weight" class="form-control" placeholder="e.g. 40" value="30">
+            </div>
+            <div class="form-group">
+              <label>Total Sets</label>
+              <input type="number" id="gym-sets" class="form-control" placeholder="3" value="3">
+            </div>
+            <div class="form-group">
+              <label>Reps / Set</label>
+              <input type="number" id="gym-reps" class="form-control" placeholder="12" value="12">
+            </div>
+          </div>
+
+          <button id="btn-log-workout" class="btn">CALCULATE &amp; LOG EXERCISE</button>
+        </div>
+      </div>
+
+      <!-- TAB 2: PEDOMETER STEP TRACKER -->
+      <div id="tab-steps" class="tab-content">
+        <div class="panel style-text-center" style="text-align: center;">
+          <div class="panel-title" style="justify-content: center;">LIVE STEP TRACKER</div>
+          
+          <div class="step-circle">
+            <div class="step-count" id="step-display">0</div>
+            <div class="step-label">Steps Today</div>
+          </div>
+
+          <div style="font-size: 0.8rem; color: var(--cyan); font-weight: 700; margin-bottom: 12px;">
+            Estimated Calories Burned: <span id="step-calories">0</span> kcal
+          </div>
+
+          <div class="form-row" style="margin-bottom: 12px;">
+            <button id="btn-toggle-pedometer" class="btn btn-secondary">⚡ Start Live Motion Sensor</button>
+            <button id="btn-add-sim-steps" class="btn btn-secondary">+500 Manual Steps</button>
+          </div>
+          <div id="pedometer-status" style="font-size: 0.7rem; color: var(--text-dim);">Sensor: Inactive</div>
+        </div>
+      </div>
+
+      <!-- TAB 3: CALORIE DEFICIT DIET -->
+      <div id="tab-diet" class="tab-content">
+        <div class="panel">
+          <div class="panel-title">DAILY CALORIE DEFICIT TARGETS</div>
+          <div class="hud-grid" style="margin-bottom: 12px;">
+            <div class="hud-stat">
+              <div class="hud-stat-label">Maintenance (TDEE)</div>
+              <div class="hud-stat-val" id="diet-tdee">-- kcal</div>
+            </div>
+            <div class="hud-stat">
+              <div class="hud-stat-label">Fat Loss Target</div>
+              <div class="hud-stat-val glow-cyan" id="diet-target">-- kcal</div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--cyan); margin-bottom: 8px;">
+            RECOMMENDED HIGH-PROTEIN MEAL PLAN:
+          </div>
+
+          <div id="meal-plan-container">
+            <!-- Meal items will be injected here dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: HISTORY LOGS & CLEAR BUTTON -->
+      <div id="tab-history" class="tab-content">
+        <div class="panel">
+          <div class="panel-title">
+            <span>ACTIVITY LOGS</span>
+            <button id="btn-clear-history" class="btn-icon" style="background: rgba(255,0,0,0.2); border-color: var(--red); color: var(--red);">🗑️ Clear Logs</button>
+          </div>
+
+          <div id="history-list">
+            <p style="font-size: 0.8rem; color: var(--text-dim); text-align: center; padding: 12px;">No logged exercises or step sessions today.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- QUICK CODE MODAL (PERMANENT SAVE / LOAD BACKUP) -->
+  <div class="modal-overlay" id="code-modal">
+    <div class="modal-card">
+      <div class="panel-title">PERMANENT SAVE CODE</div>
+      <p style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px;">
+        Copy your System Save String. If your browser or Home Screen app ever clears data, just paste this code back in to instantly restore your progress!
+      </p>
+
+      <div class="form-group">
+        <label>Your Save Code String</label>
+        <textarea id="save-code-box" class="form-control" rows="3" style="font-family: monospace; font-size: 0.7rem;"></textarea>
+      </div>
+
+      <div class="form-row">
+        <button id="btn-copy-code" class="btn">Copy Code</button>
+        <button id="btn-import-code" class="btn btn-secondary">Restore Code</button>
+      </div>
+
+      <button id="btn-close-modal" class="btn btn-secondary" style="margin-top: 10px;">Close Modal</button>
+    </div>
+  </div>
+
+  <script>
+    // --- MULTI-LAYER STORAGE ENGINE (LocalStorage + SessionStorage + Cookies + IndexedDB) ---
+    const STORAGE_KEY = 'solo_leveling_v2_hunter';
+
+    // Synchronous Save to all persistent layers
+    function saveSystemData(data) {
+      const jsonStr = JSON.stringify(data);
+      
+      // 1. LocalStorage
+      try { localStorage.setItem(STORAGE_KEY, jsonStr); } catch(e){}
+      
+      // 2. SessionStorage
+      try { sessionStorage.setItem(STORAGE_KEY, jsonStr); } catch(e){}
+      
+      // 3. Cookie (Expires in 1 year)
+      try {
+        const d = new Date();
+        d.setTime(d.getTime() + (365*24*60*60*1000));
+        document.cookie = `${STORAGE_KEY}=${encodeURIComponent(jsonStr)};expires=${d.toUTCString()};path=/`;
+      } catch(e){}
+
+      // Update UI Status
+      const tag = document.getElementById('storage-status-tag');
+      if (tag) {
+        tag.textContent = "SECURE SYNC";
+        tag.style.borderColor = "#00ff66";
+        tag.style.color = "#00ff66";
+      }
+    }
+
+    // Synchronous Load from any available layer
+    function loadSystemData() {
+      // Try LocalStorage
+      try {
+        const ls = localStorage.getItem(STORAGE_KEY);
+        if (ls) return JSON.parse(ls);
+      } catch(e){}
+
+      // Try SessionStorage
+      try {
+        const ss = sessionStorage.getItem(STORAGE_KEY);
+        if (ss) return JSON.parse(ss);
+      } catch(e){}
+
+      // Try Cookie
+      try {
+        const name = STORAGE_KEY + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for(let i = 0; i < ca.length; i++) {
+          let c = ca[i].trim();
+          if (c.indexOf(name) === 0) {
+            return JSON.parse(c.substring(name.length, c.length));
+          }
+        }
+      } catch(e){}
+
+      return null;
+    }
+
+    // --- STATE MANAGEMENT ---
+    let hunter = {
+      isAwakened: false,
+      weight: 70,
+      targetWeight: 62,
+      height: 175,
+      age: 18,
+      diet: 'high-protein',
+      activity: 1.55,
+      level: 1,
+      xp: 0,
+      xpMax: 100,
+      rank: 'E-RANK',
+      stepsToday: 0,
+      history: []
+    };
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = loadSystemData();
+      if (saved && saved.isAwakened) {
+        hunter = saved;
+        showDashboard();
+      } else {
+        document.getElementById('onboarding-view').style.display = 'block';
+        document.getElementById('dashboard-view').style.display = 'none';
+      }
+    });
+
+    // --- ONBOARDING / AWAKEN FORM SUBMIT ---
+    document.getElementById('form-onboarding').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      hunter.weight = parseFloat(document.getElementById('init-weight').value) || 70;
+      hunter.targetWeight = parseFloat(document.getElementById('init-target-weight').value) || 62;
+      hunter.height = parseFloat(document.getElementById('init-height').value) || 175;
+      hunter.age = parseInt(document.getElementById('init-age').value) || 18;
+      hunter.diet = document.getElementById('init-diet').value;
+      hunter.activity = parseFloat(document.getElementById('init-activity').value) || 1.55;
+      
+      hunter.isAwakened = true;
+      saveSystemData(hunter);
+      showDashboard();
+    });
+
+    // --- RENDER DASHBOARD & HUD ---
+    function showDashboard() {
+      document.getElementById('onboarding-view').style.display = 'none';
+      document.getElementById('dashboard-view').style.display = 'block';
+
+      updateHUD();
+      renderDietPlan();
+      renderHistory();
+    }
+
+    function updateHUD() {
+      // Calculate Hunter Rank based on Level
+      if (hunter.level >= 25) hunter.rank = 'S-RANK MONARCH';
+      else if (hunter.level >= 18) hunter.rank = 'A-RANK';
+      else if (hunter.level >= 12) hunter.rank = 'B-RANK';
+      else if (hunter.level >= 6) hunter.rank = 'C-RANK';
+      else if (hunter.level >= 3) hunter.rank = 'D-RANK';
+      else hunter.rank = 'E-RANK';
+
+      document.getElementById('hud-rank').textContent = hunter.rank;
+      document.getElementById('hud-level').textContent = `LVL ${hunter.level}`;
+      document.getElementById('hud-weight').textContent = `${hunter.weight} kg`;
+      document.getElementById('hud-target').textContent = `${hunter.targetWeight} kg`;
+
+      document.getElementById('hud-xp-text').textContent = `${hunter.xp} / ${hunter.xpMax} XP`;
+      const pct = Math.min(100, Math.round((hunter.xp / hunter.xpMax) * 100));
+      document.getElementById('hud-xp-bar').style.width = `${pct}%`;
+
+      // Calculate BMR & TDEE
+      // Harris-Benedict formula
+      const bmr = 10 * hunter.weight + 6.25 * hunter.height - 5 * hunter.age + 5;
+      const tdee = Math.round(bmr * hunter.activity);
+      const targetDeficit = Math.round(tdee - 500);
+
+      document.getElementById('diet-tdee').textContent = `${tdee} kcal`;
+      document.getElementById('diet-target').textContent = `${targetDeficit} kcal`;
+
+      saveSystemData(hunter);
+    }
+
+    function addXP(amount) {
+      hunter.xp += amount;
+      while (hunter.xp >= hunter.xpMax) {
+        hunter.xp -= hunter.xpMax;
+        hunter.level += 1;
+        hunter.xpMax = Math.round(hunter.xpMax * 1.25);
+        alert(`🎉 SYSTEM LEVEL UP! You reached Level ${hunter.level}!`);
+      }
+      updateHUD();
+    }
+
+    // --- WORKOUT CALCULATOR ---
+    document.getElementById('btn-log-workout').addEventListener('click', () => {
+      const select = document.getElementById('gym-exercise');
+      const name = select.options[select.selectedIndex].text;
+      const met = parseFloat(select.options[select.selectedIndex].dataset.met) || 5.0;
+
+      const weight = parseFloat(document.getElementById('gym-weight').value) || 0;
+      const sets = parseInt(document.getElementById('gym-sets').value) || 1;
+      const reps = parseInt(document.getElementById('gym-reps').value) || 1;
+
+      // Formula for calories burned during strength training:
+      // Cal = MET * 3.5 * weight_in_kg / 200 * duration_in_minutes
+      // Estimating ~1.5 minutes per set including rest
+      const totalReps = sets * reps;
+      const totalTonnage = weight * totalReps;
+      const durationMin = sets * 2.0; 
+      const burned = Math.round((met * 3.5 * hunter.weight / 200) * durationMin + (totalTonnage * 0.015));
+      const xpGained = Math.round(burned * 0.5) + 10;
+
+      const item = {
+        id: Date.now(),
+        type: 'Gym Workout',
+        title: name,
+        details: `${weight}kg x ${sets} sets x ${reps} reps (${totalTonnage}kg total volume)`,
+        burned: burned,
+        xp: xpGained,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      hunter.history.unshift(item);
+      addXP(xpGained);
+      renderHistory();
+      alert(`💪 Logged ${name}! Burned ~${burned} kcal and earned +${xpGained} XP!`);
+    });
+
+    // --- PEDOMETER SENSOR ---
+    let pedometerActive = false;
+    let accelThreshold = 11.5;
+    let lastAccelTime = 0;
+
+    document.getElementById('btn-toggle-pedometer').addEventListener('click', () => {
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission().then(response => {
+          if (response === 'granted') startMotionSensor();
+          else alert("Motion permission denied.");
+        }).catch(console.error);
+      } else {
+        startMotionSensor();
+      }
+    });
+
+    function startMotionSensor() {
+      if (!pedometerActive) {
+        window.addEventListener('devicemotion', handleMotion);
+        pedometerActive = true;
+        document.getElementById('btn-toggle-pedometer').textContent = "⏹️ Stop Motion Sensor";
+        document.getElementById('pedometer-status').textContent = "Sensor: Active (Detecting Steps...)";
+      } else {
+        window.removeEventListener('devicemotion', handleMotion);
+        pedometerActive = false;
+        document.getElementById('btn-toggle-pedometer').textContent = "⚡ Start Live Motion Sensor";
+        document.getElementById('pedometer-status').textContent = "Sensor: Inactive";
+      }
+    }
+
+    function handleMotion(e) {
+      const acc = e.accelerationIncludingGravity;
+      if (!acc) return;
+
+      const mag = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+      const now = Date.now();
+
+      if (mag > accelThreshold && (now - lastAccelTime) > 350) {
+        lastAccelTime = now;
+        hunter.stepsToday += 1;
+        updateStepsUI();
+      }
+    }
+
+    document.getElementById('btn-add-sim-steps').addEventListener('click', () => {
+      hunter.stepsToday += 500;
+      updateStepsUI();
+    });
+
+    function updateStepsUI() {
+      document.getElementById('step-display').textContent = hunter.stepsToday.toLocaleString();
+      const cal = Math.round(hunter.stepsToday * 0.04);
+      document.getElementById('step-calories').textContent = cal;
+      saveSystemData(hunter);
+    }
+
+    // --- DIET PLAN GENERATOR ---
+    function renderDietPlan() {
+      const container = document.getElementById('meal-plan-container');
+      container.innerHTML = '';
+
+      let meals = [];
+      if (hunter.diet === 'indian-veg') {
+        meals = [
+          { title: "Breakfast (High Protein Veg)", desc: "100g Paneer Raw/Grilled or Moong Dal Chilla + 200ml Skimmed Milk / Oats" },
+          { title: "Lunch (Deficit Macro)", desc: "1.5 Roti / 1 Cup Rice + 1.5 Bowls Chana/Rajma/Dal + Green Salad + Curd" },
+          { title: "Evening Snack", desc: "1 Scoop Whey / Sattu Drink or 30g Roasted Chana + Green Tea" },
+          { title: "Dinner (Light Cut)", desc: "150g Tofu / Paneer Bhurji + Sautéed Vegetables (Broccoli, Capsicum)" }
+        ];
+      } else {
+        meals = [
+          { title: "Breakfast", desc: "3 Whole Eggs / 4 Egg Whites + 2 Slices Whole Wheat Toast + Black Coffee" },
+          { title: "Lunch", desc: "150g Grilled Chicken Breast / Fish + 1 Cup Brown Rice / 2 Rotis + Cucumber Salad" },
+          { title: "Post-Workout / Snack", desc: "1 Scoop Whey Protein + 1 Banana or 1 High Protein Bar" },
+          { title: "Dinner", desc: "150g Chicken Breast / Eggs + Sautéed Vegetables / Salad" }
+        ];
+      }
+
+      meals.forEach(m => {
+        const box = document.createElement('div');
+        box.className = 'meal-box';
+        box.innerHTML = `<div class="meal-title">${m.title}</div><div class="meal-desc">${m.desc}</div>`;
+        container.appendChild(box);
+      });
+    }
+
+    // --- HISTORY RENDERING & CLEAR LOGS ---
+    function renderHistory() {
+      const list = document.getElementById('history-list');
+      list.innerHTML = '';
+
+      if (!hunter.history || hunter.history.length === 0) {
+        list.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-dim); text-align: center; padding: 12px;">No logged exercises or step sessions today.</p>';
+        return;
+      }
+
+      hunter.history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'log-item';
+        div.innerHTML = `
+          <div>
+            <div class="log-title">${item.title}</div>
+            <div class="log-sub">${item.details} • ${item.time}</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="log-xp">+${item.xp} XP</div>
+            <div style="font-size: 0.7rem; color: var(--red); font-weight: 700;">-${item.burned} kcal</div>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    document.getElementById('btn-clear-history').addEventListener('click', () => {
+      if (confirm("Are you sure you want to clear all history logs?")) {
+        hunter.history = [];
+        saveSystemData(hunter);
+        renderHistory();
+      }
+    });
+
+    // --- TABS SWITCHER ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // --- RE-AWAKEN / RESET SYSTEM BUTTON ---
+    document.getElementById('btn-re-awaken').addEventListener('click', () => {
+      if (confirm("Reset System profile and re-enter stats?")) {
+        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem(STORAGE_KEY);
+        document.cookie = `${STORAGE_KEY}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        location.reload();
+      }
+    });
+
+    // --- QUICK SAVE CODE BACKUP MODAL ---
+    const modal = document.getElementById('code-modal');
+    document.getElementById('btn-quick-code').addEventListener('click', () => {
+      document.getElementById('save-code-box').value = btoa(JSON.stringify(hunter));
+      modal.style.display = 'flex';
+    });
+
+    document.getElementById('btn-close-modal').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    document.getElementById('btn-copy-code').addEventListener('click', () => {
+      const box = document.getElementById('save-code-box');
+      box.select();
+      document.execCommand('copy');
+      alert("Save code copied to clipboard!");
+    });
+
+    document.getElementById('btn-import-code').addEventListener('click', () => {
+      try {
+        const code = document.getElementById('save-code-box').value.trim();
+        const parsed = JSON.parse(atob(code));
+        if (parsed && parsed.isAwakened) {
+          hunter = parsed;
+          saveSystemData(hunter);
+          showDashboard();
+          modal.style.display = 'none';
+          alert("System successfully restored from code!");
+        } else {
+          alert("Invalid Save Code String.");
+        }
+      } catch(e) {
+        alert("Failed to parse code string.");
+      }
+    });
+  </script>
+</body>
+</html>
+<!-- ========================================== -->
+<!-- 1. MANUAL BACKUP / RESTORE UI (HTML)       -->
+<!-- ========================================== -->
+<div style="margin: 20px auto; padding: 15px; width: 90%; max-width: 400px; background: rgba(0, 240, 255, 0.1); border: 2px solid #00f0ff; border-radius: 10px; text-align: center; box-sizing: border-box;">
+  <p style="color: #00f0ff; font-size: 14px; font-weight: bold; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px;">System Data Backup</p>
+  <div style="display: flex; gap: 10px; justify-content: center;">
+    <button onclick="exportData()" style="flex: 1; padding: 10px; background: #00f0ff; color: #000; font-weight: bold; border: none; border-radius: 5px; cursor: pointer;">EXPORT DATA</button>
+    <button onclick="importData()" style="flex: 1; padding: 10px; background: transparent; color: #00f0ff; border: 1.5px solid #00f0ff; border-radius: 5px; font-weight: bold; cursor: pointer;">IMPORT DATA</button>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 2. AUTOSAVE & BACKUP SYSTEM SCRIPT (JS)    -->
+<!-- ========================================== -->
+<script>
+// --- CORE DATA OBJECT ---
+// Store all your app's variables inside this object
+let hunterAppData = {
+  rank: 'E',
+  level: 1,
+  xp: 0,
+  stats: {},
+  logs: []
+};
+
+// --- 1. AUTOSAVE FUNCTION ---
+// Call this function whenever stats, XP, or logs update in your app
+function autoSaveProgress() {
+  try {
+    localStorage.setItem('hunterAppState', JSON.stringify(hunterAppData));
+  } catch (e) {
+    console.error("Autosave failed:", e);
+  }
+}
+
+// --- 2. AUTOLOAD ON OPEN ---
+// Automatically loads saved progress when the page opens
+function autoLoadProgress() {
+  const savedData = localStorage.getItem('hunterAppState');
+  if (savedData) {
+    try {
+      hunterAppData = JSON.parse(savedData);
+      updateAppUI(); // Call your function that refreshes the screen with loaded values
+    } catch (e) {
+      console.error("Error loading saved data:", e);
+    }
+  }
+}
+
+// Run autoLoadProgress immediately when page loads
+window.addEventListener('DOMContentLoaded', autoLoadProgress);
+
+// Extra safety: save automatically when user closes or leaves the page
+window.addEventListener('beforeunload', autoSaveProgress);
+window.addEventListener('pagehide', autoSaveProgress);
+
+
+// --- 3. EXPORT DATA (MANUAL BACKUP) ---
+function exportData() {
+  // Ensure the latest state is saved first
+  autoSaveProgress();
+  
+  // Package all localStorage entries into one string
+  const backupObj = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    backupObj[key] = localStorage.getItem(key);
+  }
+  const jsonString = JSON.stringify(backupObj);
+  
+  // Display popup with the string ready to copy
+  prompt("📋 Copy your backup code string below (Select All & Copy):", jsonString);
+}
+
+
+// --- 4. IMPORT DATA (MANUAL RESTORE) ---
+function importData() {
+  const jsonString = prompt("Paste your saved backup code string here:");
+  if (jsonString) {
+    try {
+      const parsedData = JSON.parse(jsonString);
+      Object.keys(parsedData).forEach(key => {
+        localStorage.setItem(key, parsedData[key]);
+      });
+      alert("System Data Restored Successfully!");
+      location.reload(); // Reloads page to show restored progress
+    } catch (e) {
+      alert("Invalid backup string. Please check the code and try again.");
+    }
+  }
+}
+
+// --- 5. UI UPDATE PLACEHOLDER ---
+// Replace the code inside this function with your app's actual code for updating the UI display
+function updateAppUI() {
+  // Example:
+  // document.getElementById('rankDisplay').innerText = hunterAppData.rank;
+  // document.getElementById('levelDisplay').innerText = hunterAppData.level;
+}
+</script>
