@@ -35,17 +35,19 @@
     .btn { background: var(--primary); color: #000; font-weight: bold; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s; font-size: 12px; box-shadow: 0 0 10px rgba(0,240,255,0.3); }
     .btn:active { transform: scale(0.98); opacity: 0.8; }
     .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); box-shadow: none; }
-    .btn-sm { padding: 5px 10px; font-size: 10px; width: auto; }
+    .btn-sm { padding: 6px 10px; font-size: 10px; width: auto; }
 
     /* Category Grid */
     .muscle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
     .muscle-btn { background: rgba(112, 0, 255, 0.2); border: 1px solid var(--accent); color: #fff; padding: 10px 4px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; cursor: pointer; }
     .muscle-btn.active { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
 
-    /* Workout List */
-    .workout-item { background: rgba(255,255,255,0.03); border-left: 3px solid var(--primary); padding: 10px; margin-bottom: 8px; border-radius: 0 6px 6px 0; display: flex; justify-content: space-between; align-items: center; }
+    /* Workout List & Inputs */
+    .workout-item { background: rgba(255,255,255,0.03); border-left: 3px solid var(--primary); padding: 10px; margin-bottom: 10px; border-radius: 0 6px 6px 0; display: flex; flex-direction: column; gap: 8px; }
+    .workout-top { display: flex; justify-content: space-between; align-items: center; }
     .workout-info h4 { font-size: 13px; color: #fff; }
-    .workout-info p { font-size: 10px; color: var(--subtext); }
+    .workout-inputs { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--subtext); }
+    .workout-inputs input { width: 50px; background: rgba(0,0,0,0.6); border: 1px solid var(--border); color: #fff; text-align: center; border-radius: 4px; padding: 4px; font-size: 11px; }
 
     /* Quest Checkbox items */
     .quest-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
@@ -172,21 +174,24 @@
     </div>
   </div>
 
-  <!-- WORKOUT LIBRARY BY MUSCLE GROUP -->
+  <!-- CUSTOMIZABLE WORKOUT LIBRARY -->
   <div class="card">
     <div class="card-title">
       <span>WORKOUT DASHBOARD</span>
-      <span style="font-size: 10px;">SELECT CATEGORY</span>
+      <span style="font-size: 10px;">EDIT SETS & REPS</span>
     </div>
 
     <div class="muscle-grid">
-      <div class="muscle-btn active" onclick="showCategory('chest', this)">CHEST</div>
-      <div class="muscle-btn" onclick="showCategory('back', this)">BACK</div>
-      <div class="muscle-btn" onclick="showCategory('legs', this)">LEGS</div>
-      <div class="muscle-btn" onclick="showCategory('arms', this)">ARMS</div>
-      <div class="muscle-btn" onclick="showCategory('shoulders', this)">SHOULDERS</div>
-      <div class="muscle-btn" onclick="showCategory('core', this)">CORE</div>
+      <div class="muscle-btn active" onclick="switchCategory('chest', this)">CHEST</div>
+      <div class="muscle-btn" onclick="switchCategory('back', this)">BACK</div>
+      <div class="muscle-btn" onclick="switchCategory('legs', this)">LEGS</div>
+      <div class="muscle-btn" onclick="switchCategory('arms', this)">ARMS</div>
+      <div class="muscle-btn" onclick="switchCategory('shoulders', this)">SHOULDERS</div>
+      <div class="muscle-btn" onclick="switchCategory('core', this)">CORE</div>
     </div>
+
+    <!-- Add Custom Exercise Button -->
+    <button class="btn btn-outline" style="font-size: 10px; margin-bottom: 12px; padding: 8px;" onclick="addCustomExercisePrompt()">+ ADD CUSTOM EXERCISE TO THIS GROUP</button>
 
     <div id="workoutList"></div>
   </div>
@@ -216,40 +221,51 @@
       workoutCalsBurned: 0,
       totalCal: 0,
       totalProt: 0,
-      questsDone: false
-    };
-
-    const workoutData = {
-      chest: [
-        { name: "Bench Press", sets: "4 Sets x 10 Reps", xp: 50, cals: 150 },
-        { name: "Incline Dumbbell Press", sets: "3 Sets x 12 Reps", xp: 40, cals: 120 },
-        { name: "Chest Flyes", sets: "3 Sets x 15 Reps", xp: 30, cals: 90 }
-      ],
-      back: [
-        { name: "Lat Pulldowns", sets: "4 Sets x 12 Reps", xp: 45, cals: 130 },
-        { name: "Seated Cable Rows", sets: "3 Sets x 12 Reps", xp: 40, cals: 110 },
-        { name: "Deadlifts", sets: "3 Sets x 8 Reps", xp: 60, cals: 200 }
-      ],
-      legs: [
-        { name: "Barbell Squats", sets: "4 Sets x 10 Reps", xp: 55, cals: 180 },
-        { name: "Leg Press", sets: "3 Sets x 12 Reps", xp: 40, cals: 130 },
-        { name: "Calf Raises", sets: "4 Sets x 15 Reps", xp: 25, cals: 70 }
-      ],
-      arms: [
-        { name: "Bicep Cable Curls", sets: "3 Sets x 12 Reps", xp: 30, cals: 80 },
-        { name: "Tricep Pushdowns", sets: "4 Sets x 12 Reps", xp: 35, cals: 85 },
-        { name: "Hammer Curls", sets: "3 Sets x 12 Reps", xp: 30, cals: 80 }
-      ],
-      shoulders: [
-        { name: "Overhead Press", sets: "4 Sets x 10 Reps", xp: 45, cals: 120 },
-        { name: "Lateral Raises", sets: "4 Sets x 15 Reps", xp: 30, cals: 75 },
-        { name: "Face Pulls", sets: "3 Sets x 15 Reps", xp: 30, cals: 70 }
-      ],
-      core: [
-        { name: "Hanging Leg Raises", sets: "3 Sets x 15 Reps", xp: 35, cals: 90 },
-        { name: "Plank Hold", sets: "3 Sets x 60 Secs", xp: 30, cals: 60 },
-        { name: "Ab Wheel Rollouts", sets: "3 Sets x 12 Reps", xp: 40, cals: 100 }
-      ]
+      questsDone: false,
+      currentCategory: 'chest',
+      workouts: {
+        chest: [
+          { name: "Bench Press", sets: 4, reps: 10, xp: 50, cals: 150 },
+          { name: "Incline Dumbbell Press", sets: 3, reps: 12, xp: 40, cals: 120 },
+          { name: "Chest Flyes", sets: 3, reps: 15, xp: 30, cals: 90 },
+          { name: "Decline Bench Press", sets: 3, reps: 10, xp: 45, cals: 130 },
+          { name: "Push-Ups", sets: 4, reps: 20, xp: 25, cals: 80 }
+        ],
+        back: [
+          { name: "Lat Pulldowns", sets: 4, reps: 12, xp: 45, cals: 130 },
+          { name: "Seated Cable Rows", sets: 3, reps: 12, xp: 40, cals: 110 },
+          { name: "Deadlifts", sets: 3, reps: 8, xp: 60, cals: 200 },
+          { name: "Barbell Rows", sets: 4, reps: 10, xp: 50, cals: 150 },
+          { name: "Pull-Ups", sets: 3, reps: 8, xp: 35, cals: 100 }
+        ],
+        legs: [
+          { name: "Barbell Squats", sets: 4, reps: 10, xp: 55, cals: 180 },
+          { name: "Leg Press", sets: 3, reps: 12, xp: 40, cals: 130 },
+          { name: "Romanian Deadlifts", sets: 3, reps: 10, xp: 45, cals: 140 },
+          { name: "Leg Extensions", sets: 3, reps: 15, xp: 30, cals: 80 },
+          { name: "Calf Raises", sets: 4, reps: 15, xp: 25, cals: 70 }
+        ],
+        arms: [
+          { name: "Bicep Cable Curls", sets: 3, reps: 12, xp: 30, cals: 80 },
+          { name: "Tricep Pushdowns", sets: 4, reps: 12, xp: 35, cals: 85 },
+          { name: "Hammer Curls", sets: "3", reps: 12, xp: 30, cals: 80 },
+          { name: "Skull Crushers", sets: 3, reps: 10, xp: 35, cals: 90 },
+          { name: "Preacher Curls", sets: 3, reps: 10, xp: 35, cals: 85 }
+        ],
+        shoulders: [
+          { name: "Overhead Press", sets: 4, reps: 10, xp: 45, cals: 120 },
+          { name: "Lateral Raises", sets: 4, reps: 15, xp: 30, cals: 75 },
+          { name: "Front Raises", sets: 3, reps: 12, xp: 25, cals: 65 },
+          { name: "Face Pulls", sets: 3, reps: 15, xp: 30, cals: 70 },
+          { name: "Shrugs", sets: 4, reps: 12, xp: 30, cals: 80 }
+        ],
+        core: [
+          { name: "Hanging Leg Raises", sets: 3, reps: 15, xp: 35, cals: 90 },
+          { name: "Plank Hold", sets: 3, reps: 60, xp: 30, cals: 60 },
+          { name: "Ab Wheel Rollouts", sets: 3, reps: 12, xp: 40, cals: 100 },
+          { name: "Russian Twists", sets: 3, reps: 20, xp: 30, cals: 75 }
+        ]
+      }
     };
 
     function checkDailyReset() {
@@ -291,7 +307,6 @@
       
       document.getElementById('stepVal').innerText = systemData.steps;
       
-      // Total calories burned = Step cals (steps * 0.04) + Calories burned from completed workouts
       const stepCals = Math.round(systemData.steps * 0.04);
       const totalBurned = stepCals + (systemData.workoutCalsBurned || 0);
       document.getElementById('totalKcalBurned').innerText = totalBurned;
@@ -308,6 +323,8 @@
         document.getElementById('q2').checked = true;
         document.getElementById('q3').checked = true;
       }
+      
+      renderWorkouts();
     }
 
     function getRank(lvl) {
@@ -429,34 +446,75 @@
       showSystemModal("MEAL LOGGED", `Added ${pendingMeal.cal} kcal & ${pendingMeal.prot}g protein!\n+20 XP`);
     }
 
-    function showCategory(category, element) {
+    function switchCategory(category, element) {
       document.querySelectorAll('.muscle-btn').forEach(btn => btn.classList.remove('active'));
       if (element) element.classList.add('active');
+      systemData.currentCategory = category;
+      renderWorkouts();
+    }
 
+    function renderWorkouts() {
       const container = document.getElementById('workoutList');
+      if (!container) return;
       container.innerHTML = '';
 
-      const list = workoutData[category] || [];
-      list.forEach(item => {
+      const category = systemData.currentCategory || 'chest';
+      const list = systemData.workouts[category] || [];
+
+      list.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = 'workout-item';
         div.innerHTML = `
-          <div class="workout-info">
-            <h4>${item.name}</h4>
-            <p>${item.sets} | +${item.xp} XP | ~${item.cals} kcal</p>
+          <div class="workout-top">
+            <div class="workout-info">
+              <h4>${item.name}</h4>
+              <p style="font-size:10px; color:var(--subtext);">Reward: +${item.xp} XP | ~${item.cals} kcal</p>
+            </div>
+            <button class="btn btn-sm" onclick="completeWorkout('${category}', ${index})">COMPLETE</button>
           </div>
-          <button class="btn btn-sm" onclick="completeWorkout('${item.name}', ${item.xp}, ${item.cals})">COMPLETE</button>
+          <div class="workout-inputs">
+            <span>Sets:</span>
+            <input type="number" value="${item.sets}" onchange="updateWorkoutParam('${category}', ${index}, 'sets', this.value)">
+            <span>Reps:</span>
+            <input type="number" value="${item.reps}" onchange="updateWorkoutParam('${category}', ${index}, 'reps', this.value)">
+          </div>
         `;
         container.appendChild(div);
       });
     }
 
-    function completeWorkout(name, xp, cals) {
-      systemData.workoutCalsBurned = (systemData.workoutCalsBurned || 0) + cals;
+    function updateWorkoutParam(category, index, field, value) {
+      systemData.workouts[category][index][field] = value;
+      saveData();
+    }
+
+    function addCustomExercisePrompt() {
+      const name = prompt("Enter custom exercise name:");
+      if (name) {
+        const sets = prompt("Enter number of sets:", "3");
+        const reps = prompt("Enter number of reps:", "10");
+        const cat = systemData.currentCategory;
+        
+        systemData.workouts[cat].push({
+          name: name,
+          sets: sets || 3,
+          reps: reps || 10,
+          xp: 40,
+          cals: 100
+        });
+        saveData();
+        renderWorkouts();
+        alert(`Successfully added ${name} to ${cat.toUpperCase()}!`);
+      }
+    }
+
+    function completeWorkout(category, index) {
+      const item = systemData.workouts[category][index];
+      systemData.workoutCalsBurned = (systemData.workoutCalsBurned || 0) + (item.cals || 100);
       document.getElementById('q1').checked = true;
       checkQuestCompletion();
-      addXP(xp);
-      showSystemModal("QUEST ACCOMPLISHED", `Completed ${name}!\nEarned +${xp} XP & burned ~${cals} kcal!`);
+      addXP(item.xp);
+      showSystemModal("QUEST ACCOMPLISHED", `Completed ${item.name} (${item.sets} Sets x ${item.reps} Reps)!\nEarned +${item.xp} XP!`);
     }
 
     function exportData() {
@@ -478,7 +536,6 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       loadData();
-      showCategory('chest', document.querySelector('.muscle-btn'));
     });
     window.addEventListener('beforeunload', saveData);
   </script>
