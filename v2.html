@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solo Leveling System</title>
+  <style>
+    :root {
+      --bg: #070b12;
+      --card-bg: rgba(13, 22, 38, 0.94);
+      --primary: #00f0ff;
+      --accent: #8a00ff;
+      --text: #ffffff;
+      --subtext: #8a99ad;
+      --border: rgba(0, 240, 255, 0.35);
+    }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); padding: 15px; padding-bottom: 70px; min-height: 100vh; position: relative; overflow-x: hidden; }
+
+    /* ANIME CORNER GAS EFFECTS */
+    .anime-bg-effects { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; overflow: hidden; }
+    .gas-corner { position: absolute; width: 350px; height: 350px; filter: blur(80px); opacity: 0.22; border-radius: 50%; animation: gasPulse 8s infinite alternate ease-in-out; }
+    .top-left { top: -120px; left: -120px; background: var(--accent); }
+    .bottom-right { bottom: -120px; right: -120px; background: var(--primary); animation-delay: 4s; }
+    @keyframes gasPulse { 0% { transform: scale(1); opacity: 0.18; } 100% { transform: scale(1.25); opacity: 0.3; } }
+
+    .header { text-align: center; padding: 15px 0; border-bottom: 2px solid var(--primary); margin-bottom: 20px; text-shadow: 0 0 12px var(--primary); }
+    .header h1 { font-size: 26px; color: var(--primary); letter-spacing: 3px; font-weight: 900; }
+    .header p { font-size: 11px; color: var(--subtext); margin-top: 4px; letter-spacing: 1px; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: 0 0 20px rgba(0, 240, 255, 0.08); position: relative; z-index: 1; }
+    .card-title { color: var(--primary); font-size: 15px; font-weight: bold; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 8px; letter-spacing: 1px; }
+
+    /* Stats Grid */
+    .stat-row { display: flex; justify-content: space-between; margin-bottom: 10px; gap: 6px; }
+    .stat-box { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px; padding: 10px; flex: 1; text-align: center; }
+    .stat-val { font-size: 18px; font-weight: bold; color: var(--primary); text-shadow: 0 0 8px rgba(0,240,255,0.4); }
+    .stat-lbl { font-size: 9px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Buttons & Inputs */
+    .btn { background: var(--primary); color: #000; font-weight: bold; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s; font-size: 12px; box-shadow: 0 0 10px rgba(0,240,255,0.3); }
+    .btn:active { transform: scale(0.98); opacity: 0.8; }
+    .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); box-shadow: none; }
+    .btn-sm { padding: 6px 10px; font-size: 10px; width: auto; }
+    input[type="text"], input[type="number"] { width: 100%; background: rgba(0,0,0,0.6); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; }
+
+    /* Category Grid */
+    .muscle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+    .muscle-btn { background: rgba(138, 0, 255, 0.2); border: 1px solid var(--accent); color: #fff; padding: 10px 4px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .muscle-btn.active { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
+
+    /* Workout List & Inputs */
+    .workout-item { background: rgba(255,255,255,0.03); border-left: 3px solid var(--primary); padding: 10px; margin-bottom: 10px; border-radius: 0 6px 6px 0; display: flex; flex-direction: column; gap: 8px; }
+    .workout-top { display: flex; justify-content: space-between; align-items: center; }
+    .workout-info h4 { font-size: 13px; color: #fff; }
+    .workout-inputs { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--subtext); flex-wrap: wrap; }
+    .workout-inputs input { width: 55px; margin-bottom: 0; padding: 4px; text-align: center; font-size: 11px; }
+
+    /* System Pop-up Modal */
+    #systemModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; padding: 20px; }
+    .system-box { background: #070b12; border: 2px solid var(--primary); border-radius: 12px; padding: 20px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 0 30px rgba(0,240,255,0.4); }
+
+    input[type="file"] { display: none; }
+    .preview-img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none; border: 1px solid var(--primary); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- ANIME GAS EFFECTS -->
+  <div class="anime-bg-effects">
+    <div class="gas-corner top-left"></div>
+    <div class="gas-corner bottom-right"></div>
+  </div>
+
+  <!-- SYSTEM MODAL -->
+  <div id="systemModal">
+    <div class="system-box">
+      <p style="color: var(--primary); font-size: 10px; letter-spacing: 2px; margin-bottom: 5px;">[ SYSTEM NOTIFICATION ]</p>
+      <h2 id="modalTitle" style="font-size: 20px; color: #fff; margin-bottom: 10px; text-shadow: 0 0 10px var(--primary);">LEVEL UP!</h2>
+      <p id="modalDesc" style="font-size: 12px; color: var(--subtext); margin-bottom: 20px;">You have successfully grown stronger.</p>
+      <button class="btn" onclick="closeSystemModal()">CONFIRM</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 1: BASIC INFO REGISTRATION -->
+  <div id="setupScreen" class="card" style="max-width: 400px; margin: 60px auto; text-align: center; border: 2px solid var(--accent);">
+    <div class="header" style="border:none; margin-bottom:10px;">
+      <h1 style="color: #b066ff;">[ GATE OPENING ]</h1>
+      <p>HUNTER REGISTRATION</p>
+    </div>
+    <p style="font-size: 12px; color: var(--subtext); margin-bottom: 15px;">Enter your Hunter designation name to bind to the System:</p>
+    <input type="text" id="hunterNameInput" placeholder="e.g. Sung Jin-Woo..." />
+    <button class="btn" style="background: var(--accent); color: #fff; box-shadow: 0 0 15px var(--accent);" onclick="registerHunter()">INITIALIZE SYSTEM ⚡</button>
+  </div>
+
+  <!-- SCREEN 2: MAIN APP DASHBOARD -->
+  <div id="mainDashboard" class="hidden">
+    <div class="header">
+      <h1>[ SYSTEM ]</h1>
+      <p>HUNTER: <span id="displayName" style="color: var(--primary);">HUNTER</span></p>
+    </div>
+
+    <!-- PLAYER PROFILE -->
+    <div class="card">
+      <div class="card-title">
+        <span>PLAYER STATUS</span>
+        <span id="rankBadge" style="color:#00f0ff;">RANK: E</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" id="levelVal">1</div><div class="stat-lbl">LEVEL</div></div>
+        <div class="stat-box"><div class="stat-val" id="xpVal">0</div><div class="stat-lbl">EXP</div></div>
+        <div class="stat-box"><div class="stat-val" id="availPoints" style="color:#ff00ea;">0</div><div class="stat-lbl">PTS AVAIL</div></div>
+      </div>
+
+      <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
+        <p style="font-size: 9px; color: var(--subtext); margin-bottom: 5px; text-align:center;">ATTRIBUTES (TAP [+] TO ALLOCATE)</p>
+        <div class="stat-row">
+          <div class="stat-box"><div class="stat-val" id="strVal">10</div><div class="stat-lbl">STR <button onclick="allocateStat('str')" class="btn-sm btn-outline" style="padding:1px 4px; font-size:8px;">+</button></div></div>
+          <div class="stat-box"><div class="stat-val" id="agiVal">10</div><div class="stat-lbl">AGI <button onclick="allocateStat('agi')" class="btn-sm btn-outline" style="padding:1px 4px; font-size:8px;">+</button></div></div>
+          <div class="stat-box"><div class="stat-val" id="vitVal">10</div><div class="stat-lbl">VIT <button onclick="allocateStat('vit')" class="btn-sm btn-outline" style="padding:1px 4px; font-size:8px;">+</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: DYNAMIC GYM CALCULATOR -->
+    <div class="card">
+      <div class="card-title">
+        <span>2) GYM CALCULATOR & CALORIES BURNT</span>
+        <span style="font-size: 10px; color: var(--primary);" id="totalBurnedHeader">0 KCAL BURNT</span>
+      </div>
+
+      <div class="muscle-grid">
+        <div class="muscle-btn active" onclick="switchCategory('chest', this)">CHEST</div>
+        <div class="muscle-btn" onclick="switchCategory('back', this)">BACK</div>
+        <div class="muscle-btn" onclick="switchCategory('legs', this)">LEGS</div>
+        <div class="muscle-btn" onclick="switchCategory('arms', this)">ARMS</div>
+        <div class="muscle-btn" onclick="switchCategory('shoulders', this)">SHOULDERS</div>
+        <div class="muscle-btn" onclick="switchCategory('core', this)">CORE</div>
+      </div>
+
+      <button class="btn btn-outline" style="font-size: 10px; margin-bottom: 12px; padding: 8px;" onclick="addCustomExercisePrompt()">+ ADD CUSTOM EXERCISE</button>
+      <div id="workoutList"></div>
+    </div>
+
+    <!-- SECTION 3: MANUAL STEPS COUNTING -->
+    <div class="card">
+      <div class="card-title">
+        <span>3) MANUAL & SENSOR STEPS</span>
+        <span style="font-size: 10px; color: #7000ff;">RESETS MIDNIGHT</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box" style="flex:2;">
+          <div class="stat-val" id="stepVal">0</div>
+          <div class="stat-lbl">STEPS TODAY</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stepCalVal">0</div>
+          <div class="stat-lbl">STEP KCAL</div>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <input type="number" id="manualStepInput" placeholder="Enter steps walked..." style="margin-bottom:0; flex:1;" />
+        <button class="btn btn-sm" onclick="logManualSteps()" style="width: auto;">ADD</button>
+      </div>
+      <button class="btn btn-outline" style="margin-top: 8px; font-size: 10px;" onclick="requestStepTracking()">ENABLE AUTO SENSOR</button>
+    </div>
+
+    <!-- SECTION 1: CUSTOM AI FOOD CAMERA -->
+    <div class="card">
+      <div class="card-title">
+        <span>1) CUSTOM AI FOOD CAMERA</span>
+        <span style="font-size: 10px;">SCAN MEAL</span>
+      </div>
+      <p style="font-size: 11px; color: var(--subtext); margin-bottom: 10px;">Snap or upload a meal photo for AI calorie & protein estimation.</p>
+      
+      <button class="btn" onclick="document.getElementById('foodCamInput').click()">📷 SNAP / CHOOSE MEAL PHOTO</button>
+      <input type="file" id="foodCamInput" accept="image/*" capture="environment" onchange="processFoodPhoto(this)">
+      
+      <img id="foodPreview" class="preview-img" alt="Meal Preview">
+      
+      <div id="aiAnalysisBox" style="display:none; margin-top: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 6px; border: 1px solid var(--accent);">
+        <p style="font-size: 11px; color: var(--primary); font-weight: bold;" id="aiStatus">SCANNING MEAL...</p>
+        <div class="stat-row" style="margin-top: 6px;">
+          <div class="stat-box"><div class="stat-val" id="mealCal">--</div><div class="stat-lbl">CALORIES</div></div>
+          <div class="stat-box"><div class="stat-val" id="mealProt">--</div><div class="stat-lbl">PROTEIN (G)</div></div>
+        </div>
+        <button class="btn" style="margin-top: 8px; font-size: 10px;" onclick="logMealMacros()">LOG MEAL & CLAIM +20 XP</button>
+      </div>
+
+      <div class="stat-row" style="margin-top: 12px;">
+        <div class="stat-box"><div class="stat-val" id="totalCalVal">0</div><div class="stat-lbl">TOTAL KCAL EATEN</div></div>
+        <div class="stat-box"><div class="stat-val" id="totalProtVal">0g</div><div class="stat-lbl">TOTAL PROTEIN</div></div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: MOTIVATION -->
+    <div class="card" style="border-color: var(--accent);">
+      <div class="card-title" style="color: #b066ff;">
+        <span>5) HUNTER MOTIVATION</span>
+        <span>⚡ SYSTEM</span>
+      </div>
+      <p id="motivationQuote" style="font-size: 13px; font-style: italic; color: #fff; line-height: 1.5; text-align: center; padding: 5px;">
+        "If you don't level up, you will be eaten by the weak world. Arise."
+      </p>
+      <button class="btn btn-outline" style="margin-top: 10px; font-size: 10px; border-color: var(--accent); color: var(--accent);" onclick="newMotivation()">NEW SYSTEM DECREE</button>
+    </div>
+
+    <!-- BACKUP / RESET -->
+    <div class="card" style="border-color: rgba(255,255,255,0.1);">
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-outline" style="font-size: 9px; padding: 6px;" onclick="exportData()">EXPORT BACKUP</button>
+        <button class="btn btn-outline" style="font-size: 9px; padding: 6px; color:#ff4444; border-color:#ff4444;" onclick="resetAccount()">RESET ACCOUNT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT ENGINE WITH DYNAMIC CALORIE SCALING -->
+  <script>
+    let systemData = {
+      hunterName: "",
+      level: 1,
+      xp: 0,
+      statPoints: 0,
+      str: 10,
+      agi: 10,
+      vit: 10,
+      lastDate: new Date().toDateString(),
+      steps: 0,
+      workoutCalsBurned: 0,
+      totalCal: 0,
+      totalProt: 0,
+      currentCategory: 'chest',
+      workouts: {
+        chest: [
+          { name: "Bench Press", sets: 4, reps: 10, kg: 50, xp: 50 },
+          { name: "Incline Dumbbell Press", sets: 3, reps: 12, kg: 20, xp: 40 },
+          { name: "Push-Ups", sets: 4, reps: 20, kg: 0, xp: 25 }
+        ],
+        back: [
+          { name: "Lat Pulldowns", sets: 4, reps: 12, kg: 45, xp: 45 },
+          { name: "Deadlifts", sets: 3, reps: 8, kg: 80, xp: 60 },
+          { name: "Barbell Rows", sets: 4, reps: 10, kg: 40, xp: 50 }
+        ],
+        legs: [
+          { name: "Barbell Squats", sets: 4, reps: 10, kg: 60, xp: 55 },
+          { name: "Leg Press", sets: 3, reps: 12, kg: 100, xp: 40 },
+          { name: "Calf Raises", sets: 4, reps: 15, kg: 30, xp: 25 }
+        ],
+        arms: [
+          { name: "Bicep Cable Curls", sets: 3, reps: 12, kg: 20, xp: 30 },
+          { name: "Tricep Pushdowns", sets: 4, reps: 12, kg: 25, xp: 35 },
+          { name: "Hammer Curls", sets: 3, reps: 12, kg: 15, xp: 30 }
+        ],
+        shoulders: [
+          { name: "Overhead Press", sets: 4, reps: 10, kg: 30, xp: 45 },
+          { name: "Lateral Raises", sets: 4, reps: 15, kg: 10, xp: 30 },
+          { name: "Face Pulls", sets: 3, reps: 15, kg: 20, xp: 30 }
+        ],
+        core: [
+          { name: "Hanging Leg Raises", sets: 3, reps: 15, kg: 0, xp: 35 },
+          { name: "Plank Hold", sets: 3, reps: 60, kg: 0, xp: 30 },
+          { name: "Russian Twists", sets: 3, reps: 20, kg: 10, xp: 30 }
+        ]
+      }
+    };
+
+    const quotes = [
+      "\"If you don't level up, you will be eaten by the weak world. Arise.\"",
+      "\"Dedication is what separates all-stars from everyday players. Push past your limits.\"",
+      "\"The system doesn't reward those who wait. It rewards those who conquer.\"",
+      "\"Even if you are the weakest hunter, consistent growth turns shadows into an army.\"",
+      "\"Pain is just a status effect. Keep moving forward, Hunter.\""
+    ];
+
+    function calculateExerciseCals(item) {
+      const sets = parseFloat(item.sets) || 0;
+      const reps = parseFloat(item.reps) || 0;
+      const kg = parseFloat(item.kg) || 0;
+      
+      // Dynamic formula: Base burn + (Sets * Reps * 0.2) + (Kg lifted * 0.5)
+      let calculated = 40 + (sets * reps * 0.25) + (kg * 0.4);
+      return Math.round(calculated);
+    }
+
+    function registerHunter() {
+      const name = document.getElementById('hunterNameInput').value.trim();
+      if (!name) {
+        alert("Please enter your Hunter designation name.");
+        return;
+      }
+      systemData.hunterName = name;
+      saveData();
+      checkSetupState();
+      showSystemModal("SYSTEM AWAKENING", `Welcome, Hunter ${name}.\nYour status window has been initialized.`);
+    }
+
+    function checkSetupState() {
+      const saved = localStorage.getItem('solofitness_data');
+      if (saved) {
+        try {
+          systemData = Object.assign(systemData, JSON.parse(saved));
+        } catch(e) {}
+      }
+
+      if (systemData.hunterName) {
+        document.getElementById('setupScreen').classList.add('hidden');
+        document.getElementById('mainDashboard').classList.remove('hidden');
+        document.getElementById('displayName').innerText = systemData.hunterName.toUpperCase();
+        checkDailyReset();
+        updateUI();
+      } else {
+        document.getElementById('setupScreen').classList.remove('hidden');
+        document.getElementById('mainDashboard').classList.add('hidden');
+      }
+    }
+
+    function checkDailyReset() {
+      const today = new Date().toDateString();
+      if (systemData.lastDate !== today) {
+        systemData.steps = 0;
+        systemData.workoutCalsBurned = 0;
+        systemData.totalCal = 0;
+        systemData.totalProt = 0;
+        systemData.lastDate = today;
+        saveData();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('solofitness_data', JSON.stringify(systemData));
+    }
+
+    function updateUI() {
+      document.getElementById('levelVal').innerText = systemData.level;
+      document.getElementById('xpVal').innerText = systemData.xp;
+      document.getElementById('rankBadge').innerText = "RANK: " + getRank(systemData.level);
+      document.getElementById('availPoints').innerText = systemData.statPoints;
+      document.getElementById('strVal').innerText = systemData.str;
+      document.getElementById('agiVal').innerText = systemData.agi;
+      document.getElementById('vitVal').innerText = systemData.vit;
+      
+      document.getElementById('stepVal').innerText = systemData.steps;
+      const stepCals = Math.round(systemData.steps * 0.04);
+      document.getElementById('stepCalVal').innerText = stepCals;
+
+      const totalBurned = stepCals + (systemData.workoutCalsBurned || 0);
+      document.getElementById('totalBurnedHeader').innerText = totalBurned + " KCAL BURNT";
+
+      document.getElementById('totalCalVal').innerText = systemData.totalCal;
+      document.getElementById('totalProtVal').innerText = systemData.totalProt + 'g';
+      
+      renderWorkouts();
+    }
+
+    function getRank(lvl) {
+      if (lvl >= 50) return "S";
+      if (lvl >= 35) return "A";
+      if (lvl >= 25) return "B";
+      if (lvl >= 15) return "C";
+      if (lvl >= 5) return "D";
+      return "E";
+    }
+
+    function showSystemModal(title, desc) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalDesc').innerText = desc;
+      document.getElementById('systemModal').style.display = 'flex';
+    }
+
+    function closeSystemModal() {
+      document.getElementById('systemModal').style.display = 'none';
+    }
+
+    function addXP(amount) {
+      systemData.xp += amount;
+      if (systemData.xp >= systemData.level * 100) {
+        systemData.xp -= systemData.level * 100;
+        systemData.level += 1;
+        systemData.statPoints += 3;
+        showSystemModal("LEVEL UP!", `You have reached Level ${systemData.level}!\n+3 Stat Points awarded.`);
+      }
+      saveData();
+      updateUI();
+    }
+
+    function allocateStat(stat) {
+      if (systemData.statPoints > 0) {
+        systemData.statPoints -= 1;
+        systemData[stat] += 1;
+        saveData();
+        updateUI();
+      } else {
+        alert("No available stat points! Level up to earn points.");
+      }
+    }
+
+    function logManualSteps() {
+      const val = parseInt(document.getElementById('manualStepInput').value);
+      if (!isNaN(val) && val > 0) {
+        systemData.steps += val;
+        document.getElementById('manualStepInput').value = '';
+        saveData();
+        updateUI();
+        showSystemModal("STEPS RECORDED", `Added ${val} steps to your daily journey!`);
+      } else {
+        alert("Please enter a valid step number.");
+      }
+    }
+
+    function requestStepTracking() {
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission().then(response => {
+          if (response === 'granted') startMotionDetection();
+          else alert("Motion permission required.");
+        });
+      } else {
+        startMotionDetection();
+      }
+    }
+
+    let lastAccel = 0;
+    function startMotionDetection() {
+      window.addEventListener('devicemotion', (event) => {
+        let acc = event.accelerationIncludingGravity;
+        if (!acc) return;
+        let totalAcc = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+        let delta = Math.abs(totalAcc - lastAccel);
+        if (delta > 11) {
+          systemData.steps += 1;
+          saveData();
+          updateUI();
+        }
+        lastAccel = totalAcc;
+      }, true);
+      alert("Auto step sensor active!");
+    }
+
+    let pendingMeal = { cal: 0, prot: 0 };
+    function processFoodPhoto(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.getElementById('foodPreview');
+          img.src = e.target.result;
+          img.style.display = 'block';
+
+          const box = document.getElementById('aiAnalysisBox');
+          box.style.display = 'block';
+          document.getElementById('aiStatus').innerText = "⚡ AI SYSTEM ANALYZING MEAL...";
+
+          setTimeout(() => {
+            pendingMeal.cal = Math.floor(Math.random() * (600 - 300 + 1)) + 300;
+            pendingMeal.prot = Math.floor(Math.random() * (45 - 20 + 1)) + 20;
+
+            document.getElementById('aiStatus').innerText = "✅ SCAN COMPLETE";
+            document.getElementById('mealCal').innerText = pendingMeal.cal;
+            document.getElementById('mealProt').innerText = pendingMeal.prot + "g";
+          }, 1200);
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function logMealMacros() {
+      systemData.totalCal += pendingMeal.cal;
+      systemData.totalProt += pendingMeal.prot;
+      addXP(20);
+      document.getElementById('aiAnalysisBox').style.display = 'none';
+      document.getElementById('foodPreview').style.display = 'none';
+      showSystemModal("MEAL LOGGED", `Added ${pendingMeal.cal} kcal & ${pendingMeal.prot}g protein!\n+20 XP`);
+    }
+
+    function switchCategory(category, element) {
+      document.querySelectorAll('.muscle-btn').forEach(btn => btn.classList.remove('active'));
+      if (element) element.classList.add('active');
+      systemData.currentCategory = category;
+      renderWorkouts();
+    }
+
+    function renderWorkouts() {
+      const container = document.getElementById('workoutList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const category = systemData.currentCategory || 'chest';
+      const list = systemData.workouts[category] || [];
+
+      list.forEach((item, index) => {
+        const liveCals = calculateExerciseCals(item);
+        const div = document.createElement('div');
+        div.className = 'workout-item';
+        div.innerHTML = `
+          <div class="workout-top">
+            <div class="workout-info">
+              <h4>${item.name}</h4>
+              <p style="font-size:10px; color:var(--subtext);">Reward: +${item.xp} XP | ~<span id="cals-txt-${index}">${liveCals}</span> kcal</p>
+            </div>
+            <button class="btn btn-sm" onclick="completeWorkout('${category}', ${index})">COMPLETE</button>
+          </div>
+          <div class="workout-inputs">
+            <span>Sets:</span> <input type="number" value="${item.sets}" onchange="updateWorkoutParam('${category}', ${index}, 'sets', this.value)">
+            <span>Reps:</span> <input type="number" value="${item.reps}" onchange="updateWorkoutParam('${category}', ${index}, 'reps', this.value)">
+            <span>Kg:</span> <input type="number" value="${item.kg}" onchange="updateWorkoutParam('${category}', ${index}, 'kg', this.value)">
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateWorkoutParam(category, index, field, value) {
+      systemData.workouts[category][index][field] = value;
+      saveData();
+      
+      // Instantly update the calorie preview text on screen when kg/sets/reps change
+      const item = systemData.workouts[category][index];
+      const liveCals = calculateExerciseCals(item);
+      const calsSpan = document.getElementById(`cals-txt-${index}`);
+      if (calsSpan) calsSpan.innerText = liveCals;
+    }
+
+    function addCustomExercisePrompt() {
+      const name = prompt("Enter custom exercise name:");
+      if (name) {
+        const sets = prompt("Enter sets:", "3");
+        const reps = prompt("Enter reps:", "10");
+        const kg = prompt("Enter weight in kg:", "20");
+        const cat = systemData.currentCategory;
+        
+        systemData.workouts[cat].push({
+          name: name,
+          sets: sets || 3,
+          reps: reps || 10,
+          kg: kg || 0,
+          xp: 40
+        });
+        saveData();
+        renderWorkouts();
+      }
+    }
+
+    function completeWorkout(category, index) {
+      const item = systemData.workouts[category][index];
+      const calsEarned = calculateExerciseCals(item);
+      
+      systemData.workoutCalsBurned = (systemData.workoutCalsBurned || 0) + calsEarned;
+      addXP(item.xp);
+      showSystemModal("QUEST ACCOMPLISHED", `Completed ${item.name} (${item.sets} Sets x ${item.reps} Reps @ ${item.kg}kg)!\nEarned +${item.xp} XP & ~${calsEarned} kcal burned!`);
+      updateUI();
+    }
+
+    function newMotivation() {
+      const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById('motivationQuote').innerText = randomQuote;
+    }
+
+    function exportData() {
+      saveData();
+      prompt("📋 Copy your Hunter System backup string:", JSON.stringify(localStorage));
+    }
+
+    function resetAccount() {
+      if (confirm("Are you sure you want to reset your Hunter account?")) {
+        localStorage.removeItem('solofitness_data');
+        location.reload();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkSetupState();
+    });
+  </script>
+</body>
+</html>
+<!-- ========================================== -->
+<!-- 1. MANUAL BACKUP / RESTORE UI (HTML)       -->
+<!-- ========================================== -->
+<div style="margin: 20px auto; padding: 15px; width: 90%; max-width: 400px; background: rgba(0, 240, 255, 0.1); border: 2px solid #00f0ff; border-radius: 10px; text-align: center; box-sizing: border-box;">
+  <p style="color: #00f0ff; font-size: 14px; font-weight: bold; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px;">System Data Backup</p>
+  <div style="display: flex; gap: 10px; justify-content: center;">
+    <button onclick="exportData()" style="flex: 1; padding: 10px; background: #00f0ff; color: #000; font-weight: bold; border: none; border-radius: 5px; cursor: pointer;">EXPORT DATA</button>
+    <button onclick="importData()" style="flex: 1; padding: 10px; background: transparent; color: #00f0ff; border: 1.5px solid #00f0ff; border-radius: 5px; font-weight: bold; cursor: pointer;">IMPORT DATA</button>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 2. AUTOSAVE & BACKUP SYSTEM SCRIPT (JS)    -->
+<!-- ========================================== -->
+<script>
+// --- CORE DATA OBJECT ---
+// Store all your app's variables inside this object
+let hunterAppData = {
+  rank: 'E',
+  level: 1,
+  xp: 0,
+  stats: {},
+  logs: []
+};
+
+// --- 1. AUTOSAVE FUNCTION ---
+// Call this function whenever stats, XP, or logs update in your app
+function autoSaveProgress() {
+  try {
+    localStorage.setItem('hunterAppState', JSON.stringify(hunterAppData));
+  } catch (e) {
+    console.error("Autosave failed:", e);
+  }
+}
+
+// --- 2. AUTOLOAD ON OPEN ---
+// Automatically loads saved progress when the page opens
+function autoLoadProgress() {
+  const savedData = localStorage.getItem('hunterAppState');
+  if (savedData) {
+    try {
+      hunterAppData = JSON.parse(savedData);
+      updateAppUI(); // Call your function that refreshes the screen with loaded values
+    } catch (e) {
+      console.error("Error loading saved data:", e);
+    }
+  }
+}
+
+// Run autoLoadProgress immediately when page loads
+window.addEventListener('DOMContentLoaded', autoLoadProgress);
+
+// Extra safety: save automatically when user closes or leaves the page
+window.addEventListener('beforeunload', autoSaveProgress);
+window.addEventListener('pagehide', autoSaveProgress);
+
+
+// --- 3. EXPORT DATA (MANUAL BACKUP) ---
+function exportData() {
+  // Ensure the latest state is saved first
+  autoSaveProgress();
+  
+  // Package all localStorage entries into one string
+  const backupObj = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    backupObj[key] = localStorage.getItem(key);
+  }
+  const jsonString = JSON.stringify(backupObj);
+  
+  // Display popup with the string ready to copy
+  prompt("📋 Copy your backup code string below (Select All & Copy):", jsonString);
+}
+
+
+// --- 4. IMPORT DATA (MANUAL RESTORE) ---
+function importData() {
+  const jsonString = prompt("Paste your saved backup code string here:");
+  if (jsonString) {
+    try {
+      const parsedData = JSON.parse(jsonString);
+      Object.keys(parsedData).forEach(key => {
+        localStorage.setItem(key, parsedData[key]);
+      });
+      alert("System Data Restored Successfully!");
+      location.reload(); // Reloads page to show restored progress
+    } catch (e) {
+      alert("Invalid backup string. Please check the code and try again.");
+    }
+  }
+}
+
+// --- 5. UI UPDATE PLACEHOLDER ---
+// Replace the code inside this function with your app's actual code for updating the UI display
+function updateAppUI() {
+  // Example:
+  // document.getElementById('rankDisplay').innerText = hunterAppData.rank;
+  // document.getElementById('levelDisplay').innerText = hunterAppData.level;
+}
+</script>
