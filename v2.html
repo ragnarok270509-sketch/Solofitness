@@ -755,3 +755,75 @@ function updateAppUI() {
         calsSpan.innerText = liveCals;
       }
     }
+    function calculateExerciseCals(item) {
+      const sets = parseFloat(item.sets) || 0;
+      const reps = parseFloat(item.reps) || 0;
+      const kg = parseFloat(item.kg) || 0;
+      
+      // Genuine dynamic scaling formula based on volume and weight
+      let calculated = 20 + (sets * reps * kg * 0.015);
+      return Math.round(calculated);
+    }
+
+    function renderWorkouts() {
+      const container = document.getElementById('workoutList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const category = systemData.currentCategory || 'chest';
+      const list = systemData.workouts[category] || [];
+
+      list.forEach((item, index) => {
+        const liveCals = calculateExerciseCals(item);
+        const div = document.createElement('div');
+        div.className = 'workout-item';
+        div.innerHTML = `
+          <div class="workout-top">
+            <div class="workout-info">
+              <h4>${item.name}</h4>
+              <p style="font-size:10px; color:var(--subtext);">Reward: +${item.xp} XP | ~<span id="cals-txt-${index}">${liveCals}</span> kcal</p>
+            </div>
+            <button class="btn btn-sm" onclick="completeWorkout('${category}', ${index})">COMPLETE</button>
+          </div>
+          <div class="workout-inputs">
+            <span>Sets:</span> <input type="number" value="${item.sets}" oninput="updateWorkoutParam('${category}', ${index}, 'sets', this.value)">
+            <span>Reps:</span> <input type="number" value="${item.reps}" oninput="updateWorkoutParam('${category}', ${index}, 'reps', this.value)">
+            <span>Kg:</span> <input type="number" value="${item.kg}" oninput="updateWorkoutParam('${category}', ${index}, 'kg', this.value)">
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateWorkoutParam(category, index, field, value) {
+      systemData.workouts[category][index][field] = value;
+      saveData();
+      
+      // Live update of calories as you type
+      const item = systemData.workouts[category][index];
+      const liveCals = calculateExerciseCals(item);
+      const calsSpan = document.getElementById(`cals-txt-${index}`);
+      if (calsSpan) {
+        calsSpan.innerText = liveCals;
+      }
+    }
+
+    function addCustomExercisePrompt() {
+      const name = prompt("Enter custom exercise name:");
+      if (name) {
+        const sets = prompt("Enter sets:", "3");
+        const reps = prompt("Enter reps:", "10");
+        const kg = prompt("Enter weight in kg:", "20");
+        const cat = systemData.currentCategory;
+        
+        systemData.workouts[cat].push({
+          name: name,
+          sets: parseFloat(sets) || 3,
+          reps: parseFloat(reps) || 10,
+          kg: parseFloat(kg) || 0,
+          xp: 40
+        });
+        saveData();
+        renderWorkouts();
+      }
+    }
